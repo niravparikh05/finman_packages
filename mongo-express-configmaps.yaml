@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  database_url: mongo-svc
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: mongo-configmap
