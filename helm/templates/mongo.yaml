@@ -1,10 +1,11 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongodb
+  name: {{ .Values.finman.database.name }}
   labels:
-    app: mongodb
+    app: {{ .Values.finman.database.name }}
     tier: db
+  namespace: {{ .Values.finman.namespace.name }}
 spec:
   serviceName: mongo-svc
   selector:
@@ -18,10 +19,10 @@ spec:
         tier: db
     spec:
       containers:
-      - name: mongodb
+      - name: {{ .Values.finman.database.name }}
         image: mongo
         ports:
-        - containerPort: 27017
+        - containerPort: {{ .Values.finman.database.port }}
         volumeMounts:
         - mountPath: /data/db
           name: mongo-storage
@@ -42,24 +43,25 @@ spec:
     spec:
       accessModes:
         - ReadWriteMany
-      storageClassName: standard
       resources:
         requests:
           storage: 100Mi
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-svc
+  name: {{ .Values.finman.database.name }}-svc
   labels:
-    app: mongodb
+    app: finman-discovery
     type: service
+  namespace: {{ .Values.finman.namespace.name }}
 spec:
   type: NodePort
   selector:
-    app: mongodb
+    app: {{ .Values.finman.database.name }}
     tier: db
   ports:
-    - port: 27017
-      targetPort: 27017
+    - port: {{ .Values.finman.database.port }}
+      targetPort: {{ .Values.finman.database.port }}
       nodePort: 31017

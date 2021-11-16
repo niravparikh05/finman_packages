@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.finman.database.dashboard.name }}
+  labels:
+    app: finman-discovery
+    tier: db
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.finman.database.dashboard.name }}
+      tier: db
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.finman.database.dashboard.name }}
+        tier: db
+    spec:
+      containers:
+      - name: {{ .Values.finman.database.dashboard.name }}
+        image: mongo-express
+        ports:
+        - containerPort: {{ .Values.finman.database.dashboard.port }}
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.finman.database.dashboard.name }}-secrets
+              key: db_user
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.finman.database.dashboard.name }}-secrets
+              key: db_passwd
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-configmap
+              key: database_url
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.finman.database.dashboard.name }}-svc
+  labels:
+    app: finman-discovery
+    type: service
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.finman.database.dashboard.name }}
+    tier: db
+  ports:
+    - port: {{ .Values.finman.database.dashboard.port }}
+      targetPort: 8081

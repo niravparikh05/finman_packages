@@ -1,0 +1,62 @@
+#Deployment for advisors-ux application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  labels:
+    app: {{ .Values.finman.frontend.app.name }}
+    tier: ux
+  name: {{ .Values.finman.frontend.app.name }}
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: {{ .Values.finman.frontend.app.name }}
+      tier: ux
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.finman.frontend.app.name }}
+        tier: ux
+    spec:
+      containers:
+      - image: {{ .Values.finman.frontend.app.image }}
+        imagePullPolicy: IfNotPresent
+        name: {{ .Values.finman.frontend.app.name }}
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      
+...
+# Service for advisors-ux application
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.finman.frontend.app.name }}
+  name: {{ .Values.finman.frontend.app.name }}
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  ports:
+  - port: {{ .Values.finman.frontend.app.port }}
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: {{ .Values.finman.frontend.app.name }}
+    tier: ux
+  sessionAffinity: None
+  type: ClusterIP

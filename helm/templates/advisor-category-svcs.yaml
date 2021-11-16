@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2021-09-14T11:51:04Z"
+  labels:
+    app: {{ .Values.finman.backend.services.categorysvcs.name }}
+  name: {{ .Values.finman.backend.services.categorysvcs.name }}
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: {{ .Values.finman.backend.services.categorysvcs.name }}
+      tier: backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.finman.backend.services.categorysvcs.name }}
+        tier: backend
+    spec:
+      containers:
+      - image: {{ .Values.finman.backend.services.categorysvcs.image }}
+        imagePullPolicy: IfNotPresent
+        name: {{ .Values.finman.backend.services.categorysvcs.name }}
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+# create a service for advisor-category-svcs application
+apiVersion: v1
+kind: Service
+metadata:
+  name: advisor-category-svcs
+  labels:
+    app: advisor-category-svcs
+  namespace: {{ .Values.finman.namespace.name }}
+spec:
+  selector: 
+    app: advisor-category-svcs
+    tier: backend
+  ports:
+  -  port: {{ .Values.finman.backend.services.categorysvcs.port }}
+     nodePort: 30060
+  type: NodePort
